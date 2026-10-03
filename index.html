@@ -5,6 +5,11 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <meta
+    name="description"
+    content="City of Starkville zoning and Unified Development Code information assistant."
+  >
+
   <title>Starkville Planning AI Assistant</title>
 
   <link rel="stylesheet" href="style.css">
@@ -15,32 +20,76 @@
   <main class="app">
 
     <header class="header">
-      <h1>Starkville Planning AI Assistant</h1>
 
-      <p>
-        Ask questions about land uses and zoning requirements in the
-        City of Starkville Unified Development Code.
-      </p>
+      <div>
+        <p class="eyebrow">City of Starkville Planning</p>
+
+        <h1>Planning AI Assistant</h1>
+
+        <p class="subtitle">
+          Ask questions about land uses, zoning districts, and requirements
+          in the Starkville Unified Development Code.
+        </p>
+      </div>
+
+      <button
+        id="new-chat-button"
+        class="secondary-button"
+        type="button"
+      >
+        New Conversation
+      </button>
+
     </header>
+
+
+    <div class="notice">
+      <strong>Informational tool:</strong>
+      This assistant does not replace the officially adopted Unified
+      Development Code or an official determination by City staff.
+    </div>
 
 
     <section
       id="chat"
       class="chat"
       aria-live="polite"
+      aria-label="Conversation"
     >
 
       <div class="message assistant-message">
-        <div class="message-label">Planning Assistant</div>
+
+        <div class="message-label">
+          Planning Assistant
+        </div>
 
         <div class="message-content">
-          Hello! Ask me a zoning question such as:
-          <br><br>
-          <strong>“Can I open a restaurant in TN-N?”</strong>
+
+          <p>
+            Hello! I can help you understand how the Starkville UDC
+            applies to common land-use questions.
+          </p>
+
+          <p>For example, try asking:</p>
+
+          <ul>
+            <li>Can I open a restaurant in TN-N?</li>
+            <li>Can I build a parking garage in T-5C?</li>
+            <li>Can I operate a food truck in O-I?</li>
+          </ul>
+
         </div>
+
       </div>
 
     </section>
+
+
+    <div
+      id="status"
+      class="status"
+      aria-live="polite"
+    ></div>
 
 
     <form id="chat-form" class="input-area">
@@ -54,11 +103,13 @@
         rows="2"
         maxlength="2000"
         placeholder="Ask a zoning question..."
+        autocomplete="off"
         required
       ></textarea>
 
       <button
         id="send-button"
+        class="primary-button"
         type="submit"
       >
         Send
@@ -68,11 +119,12 @@
 
 
     <footer class="footer">
+
       <p>
-        This assistant is provided for informational purposes.
         The officially adopted City of Starkville Unified Development Code
         remains the controlling legal source.
       </p>
+
     </footer>
 
   </main>
