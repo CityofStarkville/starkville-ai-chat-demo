@@ -1,1 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Starkville Planning AI Assistant</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <main class="app">
+
+    <header class="header">
+      <h1>Starkville Planning AI Assistant</h1>
+
+      <p>
+        Ask questions about land uses and zoning requirements in the
+        City of Starkville Unified Development Code.
+      </p>
+    </header>
+
+
+    <section
+      id="chat"
+      class="chat"
+      aria-live="polite"
+    >
+
+      <div class="message assistant-message">
+        <div class="message-label">Planning Assistant</div>
+
+        <div class="message-content">
+          Hello! Ask me a zoning question such as:
+          <br><br>
+          <strong>“Can I open a restaurant in TN-N?”</strong>
+        </div>
+      </div>
+
+    </section>
+
+
+    <form id="chat-form" class="input-area">
+
+      <label for="question" class="sr-only">
+        Ask a zoning question
+      </label>
+
+      <textarea
+        id="question"
+        rows="2"
+        maxlength="2000"
+        placeholder="Ask a zoning question..."
+        required
+      ></textarea>
+
+      <button
+        id="send-button"
+        type="submit"
+      >
+        Send
+      </button>
+
+    </form>
+
+
+    <footer class="footer">
+      <p>
+        This assistant is provided for informational purposes.
+        The officially adopted City of Starkville Unified Development Code
+        remains the controlling legal source.
+      </p>
+    </footer>
+
+  </main>
+
+
+  <script src="app.js"></script>
+
+</body>
+</html>
