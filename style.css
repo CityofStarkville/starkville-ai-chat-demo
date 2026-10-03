@@ -423,17 +423,21 @@ button:disabled {
     width: 100%;
   }
 }
-/* Add this to the end of style.css */
+/* Official UDC references */
+
 .official-links {
   margin-top: 18px;
   padding-top: 14px;
+
   border-top: 1px solid var(--border);
 }
 
 .official-links-title {
   margin-bottom: 8px;
+
   font-size: 0.82rem;
   font-weight: 700;
+
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -457,4 +461,10 @@ button:disabled {
 
 .official-links a:hover {
   color: var(--primary-hover);
+}
+
+.official-links a:focus {
+  outline: 3px solid rgba(31, 85, 127, 0.18);
+  outline-offset: 2px;
+  border-radius: 3px;
 }
