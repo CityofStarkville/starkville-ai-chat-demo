@@ -6,45 +6,260 @@ const chat = document.getElementById("chat");
 const form = document.getElementById("chat-form");
 const questionInput = document.getElementById("question");
 const sendButton = document.getElementById("send-button");
+const newChatButton = document.getElementById("new-chat-button");
+const statusElement = document.getElementById("status");
 
 
-/*
-  We keep a small conversation history in the browser.
+const MAX_HISTORY_MESSAGES = 4;
 
-  The Lambda currently accepts recent history in this form:
-
-  [
-    {
-      role: "user",
-      text: "..."
-    },
-    {
-      role: "assistant",
-      text: "..."
-    }
-  ]
-*/
 let history = [];
 
 
-// Keep only a small rolling window.
-// Your Lambda also limits history server-side.
-const MAX_HISTORY_MESSAGES = 4;
+/*
+  Safely render a very small subset of Markdown.
+
+  Supported:
+  ## heading
+  ### heading
+  #### heading
+  **bold**
+  - bullet
+  ---
+  paragraphs
+
+  Important:
+  No HTML from the AI is inserted into the DOM.
+*/
 
 
-function addMessage(role, text, extraClass = "") {
+function appendSafeInlineFormatting(parent, text) {
 
-  const wrapper = document.createElement("div");
+  const boldPattern = /\*\*(.+?)\*\*/g;
+
+  let lastIndex = 0;
+
+  let match;
+
+
+  while ((match = boldPattern.exec(text)) !== null) {
+
+    if (match.index > lastIndex) {
+
+      parent.appendChild(
+        document.createTextNode(
+          text.slice(lastIndex, match.index)
+        )
+      );
+
+    }
+
+
+    const strong = document.createElement("strong");
+
+    strong.textContent = match[1];
+
+    parent.appendChild(strong);
+
+
+    lastIndex =
+      match.index + match[0].length;
+
+  }
+
+
+  if (lastIndex < text.length) {
+
+    parent.appendChild(
+      document.createTextNode(
+        text.slice(lastIndex)
+      )
+    );
+
+  }
+
+}
+
+
+function renderSafeMarkdown(container, markdown) {
+
+  container.replaceChildren();
+
+
+  const lines =
+    String(markdown).replace(/\r\n/g, "\n").split("\n");
+
+
+  let currentList = null;
+
+
+  function closeList() {
+    currentList = null;
+  }
+
+
+  for (const rawLine of lines) {
+
+    const line = rawLine.trim();
+
+
+    if (!line) {
+      closeList();
+      continue;
+    }
+
+
+    if (line === "---") {
+
+      closeList();
+
+      container.appendChild(
+        document.createElement("hr")
+      );
+
+      continue;
+    }
+
+
+    if (line.startsWith("#### ")) {
+
+      closeList();
+
+      const heading =
+        document.createElement("h4");
+
+      appendSafeInlineFormatting(
+        heading,
+        line.slice(5)
+      );
+
+      container.appendChild(heading);
+
+      continue;
+    }
+
+
+    if (line.startsWith("### ")) {
+
+      closeList();
+
+      const heading =
+        document.createElement("h3");
+
+      appendSafeInlineFormatting(
+        heading,
+        line.slice(4)
+      );
+
+      container.appendChild(heading);
+
+      continue;
+    }
+
+
+    if (line.startsWith("## ")) {
+
+      closeList();
+
+      const heading =
+        document.createElement("h2");
+
+      appendSafeInlineFormatting(
+        heading,
+        line.slice(3)
+      );
+
+      container.appendChild(heading);
+
+      continue;
+    }
+
+
+    if (
+      line.startsWith("- ") ||
+      line.startsWith("* ")
+    ) {
+
+      if (!currentList) {
+
+        currentList =
+          document.createElement("ul");
+
+        container.appendChild(
+          currentList
+        );
+
+      }
+
+
+      const item =
+        document.createElement("li");
+
+
+      appendSafeInlineFormatting(
+        item,
+        line.slice(2)
+      );
+
+
+      currentList.appendChild(item);
+
+      continue;
+    }
+
+
+    closeList();
+
+
+    const paragraph =
+      document.createElement("p");
+
+
+    appendSafeInlineFormatting(
+      paragraph,
+      line
+    );
+
+
+    container.appendChild(paragraph);
+
+  }
+
+}
+
+
+function addMessage(
+  role,
+  text,
+  options = {}
+) {
+
+  const wrapper =
+    document.createElement("div");
+
 
   wrapper.className =
-    `message ${role === "user"
-      ? "user-message"
-      : "assistant-message"} ${extraClass}`;
+    role === "user"
+      ? "message user-message"
+      : "message assistant-message";
 
 
-  const label = document.createElement("div");
+  if (options.loading) {
+    wrapper.classList.add("loading");
+  }
 
-  label.className = "message-label";
+
+  if (options.error) {
+    wrapper.classList.add("error-message");
+  }
+
+
+  const label =
+    document.createElement("div");
+
+
+  label.className =
+    "message-label";
+
 
   label.textContent =
     role === "user"
@@ -52,17 +267,29 @@ function addMessage(role, text, extraClass = "") {
       : "Planning Assistant";
 
 
-  const content = document.createElement("div");
+  const content =
+    document.createElement("div");
 
-  content.className = "message-content";
 
-  /*
-    textContent is intentional.
+  content.className =
+    "message-content";
 
-    It prevents model output from injecting HTML or scripts
-    into the webpage.
-  */
-  content.textContent = text;
+
+  if (
+    role === "assistant" &&
+    options.markdown
+  ) {
+
+    renderSafeMarkdown(
+      content,
+      text
+    );
+
+  } else {
+
+    content.textContent = text;
+
+  }
 
 
   wrapper.appendChild(label);
@@ -70,205 +297,351 @@ function addMessage(role, text, extraClass = "") {
 
   chat.appendChild(wrapper);
 
-  chat.scrollTop = chat.scrollHeight;
+
+  chat.scrollTop =
+    chat.scrollHeight;
+
 
   return wrapper;
+
 }
 
 
 function setLoading(isLoading) {
 
-  questionInput.disabled = isLoading;
-  sendButton.disabled = isLoading;
+  questionInput.disabled =
+    isLoading;
+
+  sendButton.disabled =
+    isLoading;
+
+  newChatButton.disabled =
+    isLoading;
+
 
   sendButton.textContent =
-    isLoading ? "Sending..." : "Send";
+    isLoading
+      ? "Checking..."
+      : "Send";
+
+
+  statusElement.textContent =
+    isLoading
+      ? "Searching the Starkville UDC..."
+      : "";
+
 }
 
 
-async function askQuestion(question) {
+function trimHistory() {
 
-  const requestHistory =
-    history.slice(-MAX_HISTORY_MESSAGES);
-
-
-  const response = await fetch(API_URL, {
-
-    method: "POST",
-
-    headers: {
-      "Content-Type": "application/json"
-    },
-
-    body: JSON.stringify({
-      question: question,
-      history: requestHistory
-    })
-
-  });
-
-
-  if (!response.ok) {
-
-    if (response.status === 429) {
-      throw new Error(
-        "The zoning assistant is receiving too many requests right now. Please wait a moment and try again."
-      );
-    }
-
-    throw new Error(
-      `The zoning assistant returned an error (${response.status}).`
+  history =
+    history.slice(
+      -MAX_HISTORY_MESSAGES
     );
-  }
 
-
-  const data = await response.json();
-
-  return data;
 }
 
 
-form.addEventListener("submit", async (event) => {
+function resetConversation() {
 
-  event.preventDefault();
-
-
-  const question = questionInput.value.trim();
-
-  if (!question) {
-    return;
-  }
+  history = [];
 
 
-  /*
-    Important:
-    capture the history BEFORE adding the current
-    user message to history.
-
-    The current question is sent separately.
-  */
-  const previousHistory =
-    history.slice(-MAX_HISTORY_MESSAGES);
+  chat.replaceChildren();
 
 
-  addMessage("user", question);
+  const welcome =
+    document.createElement("div");
 
+
+  welcome.className =
+    "message assistant-message";
+
+
+  const label =
+    document.createElement("div");
+
+
+  label.className =
+    "message-label";
+
+
+  label.textContent =
+    "Planning Assistant";
+
+
+  const content =
+    document.createElement("div");
+
+
+  content.className =
+    "message-content";
+
+
+  const firstParagraph =
+    document.createElement("p");
+
+
+  firstParagraph.textContent =
+    "Hello! Ask me a zoning question about land uses or requirements in Starkville.";
+
+
+  const secondParagraph =
+    document.createElement("p");
+
+
+  secondParagraph.textContent =
+    "For example: “Can I open a restaurant in TN-N?”";
+
+
+  content.appendChild(
+    firstParagraph
+  );
+
+
+  content.appendChild(
+    secondParagraph
+  );
+
+
+  welcome.appendChild(label);
+  welcome.appendChild(content);
+
+  chat.appendChild(welcome);
+
+
+  statusElement.textContent = "";
 
   questionInput.value = "";
 
+  questionInput.focus();
 
-  const loadingMessage =
-    addMessage(
-      "assistant",
-      "Checking the Starkville UDC...",
-      "loading"
-    );
+}
 
 
-  setLoading(true);
+form.addEventListener(
+  "submit",
+  async (event) => {
+
+    event.preventDefault();
 
 
-  try {
-
-    const response = await fetch(API_URL, {
-
-      method: "POST",
-
-      headers: {
-        "Content-Type": "application/json"
-      },
-
-      body: JSON.stringify({
-        question: question,
-        history: previousHistory
-      })
-
-    });
+    const question =
+      questionInput.value.trim();
 
 
-    if (!response.ok) {
-
-      if (response.status === 429) {
-
-        throw new Error(
-          "The zoning assistant is receiving too many requests right now. Please wait a moment and try again."
-        );
-      }
-
-      throw new Error(
-        `The zoning assistant returned an error (${response.status}).`
-      );
+    if (!question) {
+      return;
     }
 
 
-    const data = await response.json();
-
-
-    loadingMessage.remove();
-
-
-    const answer =
-      data.answer ||
-      "I was unable to generate an answer.";
+    /*
+      History is captured before the current
+      user question is added because Lambda
+      receives the current question separately.
+    */
+    const previousHistory =
+      history.slice(
+        -MAX_HISTORY_MESSAGES
+      );
 
 
     addMessage(
-      "assistant",
-      answer
+      "user",
+      question
     );
 
 
-    /*
-      Store both sides of the conversation so the
-      next message can refer to this exchange.
-    */
-    history.push({
-      role: "user",
-      text: question
-    });
-
-    history.push({
-      role: "assistant",
-      text: answer
-    });
+    questionInput.value = "";
 
 
-    /*
-      Keep the browser history small too.
-    */
-    history =
-      history.slice(-MAX_HISTORY_MESSAGES);
+    const loadingMessage =
+      addMessage(
+        "assistant",
+        "Checking the Starkville UDC...",
+        {
+          loading: true
+        }
+      );
 
 
-  } catch (error) {
-
-    loadingMessage.remove();
+    setLoading(true);
 
 
-    addMessage(
-      "assistant",
-      "The zoning assistant is temporarily unavailable. " +
-      "Please try again shortly.\n\n" +
-      error.message
-    );
+    try {
+
+      const controller =
+        new AbortController();
 
 
-    console.error(error);
+      const timeout =
+        setTimeout(
+          () => controller.abort(),
+          30000
+        );
 
-  } finally {
 
-    setLoading(false);
+      const response =
+        await fetch(
+          API_URL,
+          {
 
-    questionInput.focus();
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+
+            body: JSON.stringify({
+
+              question:
+                question,
+
+              history:
+                previousHistory
+
+            }),
+
+            signal:
+              controller.signal
+
+          }
+        );
+
+
+      clearTimeout(timeout);
+
+
+      if (!response.ok) {
+
+        if (
+          response.status === 429
+        ) {
+
+          throw new Error(
+            "The assistant is receiving too many requests. Please wait a moment and try again."
+          );
+
+        }
+
+
+        throw new Error(
+          "The zoning assistant is temporarily unavailable."
+        );
+
+      }
+
+
+      const data =
+        await response.json();
+
+
+      loadingMessage.remove();
+
+
+      const answer =
+        typeof data.answer === "string"
+          ? data.answer
+          : "I was unable to generate an answer.";
+
+
+      addMessage(
+        "assistant",
+        answer,
+        {
+          markdown: true
+        }
+      );
+
+
+      history.push({
+
+        role: "user",
+        text: question
+
+      });
+
+
+      history.push({
+
+        role: "assistant",
+        text: answer
+
+      });
+
+
+      trimHistory();
+
+
+      if (
+        data.needs_clarification
+      ) {
+
+        statusElement.textContent =
+          "The assistant needs a little more information before it can answer.";
+
+      } else {
+
+        statusElement.textContent = "";
+
+      }
+
+
+    } catch (error) {
+
+      loadingMessage.remove();
+
+
+      let message =
+        "The zoning assistant is temporarily unavailable. Please try again shortly.";
+
+
+      if (
+        error.name === "AbortError"
+      ) {
+
+        message =
+          "The request took too long to complete. Please try again.";
+
+      } else if (
+        error.message
+      ) {
+
+        message =
+          error.message;
+
+      }
+
+
+      addMessage(
+        "assistant",
+        message,
+        {
+          error: true
+        }
+      );
+
+
+      console.error(
+        "Chat request failed:",
+        error
+      );
+
+
+    } finally {
+
+      setLoading(false);
+
+      questionInput.focus();
+
+    }
+
   }
+);
 
-});
 
-
-/*
-  Press Enter to submit.
-  Shift + Enter creates a new line.
-*/
 questionInput.addEventListener(
   "keydown",
   function (event) {
@@ -281,6 +654,14 @@ questionInput.addEventListener(
       event.preventDefault();
 
       form.requestSubmit();
+
     }
+
   }
+);
+
+
+newChatButton.addEventListener(
+  "click",
+  resetConversation
 );
