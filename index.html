@@ -3,11 +3,14 @@
 <head>
   <meta charset="UTF-8">
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
   <meta
     name="description"
-    content="City of Starkville zoning and Unified Development Code information assistant."
+    content="City of Starkville Planning AI Assistant for zoning and land use questions."
   >
 
   <title>Starkville Planning AI Assistant</title>
@@ -17,119 +20,387 @@
 
 <body>
 
-  <main class="app">
+  <!-- CITY-STYLE TOP BAR -->
+  <div class="utility-bar">
+    <div class="utility-inner">
+      <span>
+        City of Starkville Planning Department
+      </span>
 
-    <header class="header">
+      <a
+        href="https://www.cityofstarkville.org/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        City Website
+      </a>
+    </div>
+  </div>
 
-      <div>
-        <p class="eyebrow">City of Starkville Planning</p>
 
-        <h1>Planning AI Assistant</h1>
+  <!-- MAIN HEADER -->
+  <header class="site-header">
+    <div class="header-inner">
 
-        <p class="subtitle">
-          Ask questions about land uses, zoning districts, and requirements
-          in the Starkville Unified Development Code.
+      <a
+        class="city-brand"
+        href="https://www.cityofstarkville.org/"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="City of Starkville website"
+      >
+        <div class="brand-mark">
+          S
+        </div>
+
+        <div class="brand-text">
+          <span class="brand-city">
+            CITY OF
+          </span>
+
+          <span class="brand-name">
+            STARKVILLE
+          </span>
+
+          <span class="brand-tagline">
+            Mississippi's College Town
+          </span>
+        </div>
+      </a>
+
+
+      <div class="header-title">
+        <span class="header-eyebrow">
+          Community Development
+        </span>
+
+        <strong>
+          Planning AI Assistant
+        </strong>
+      </div>
+
+    </div>
+  </header>
+
+
+  <!-- RED ACCENT -->
+  <div class="red-accent"></div>
+
+
+  <!-- INTRO/HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+
+      <div class="hero-copy">
+        <div class="section-kicker">
+          PLANNING & ZONING
+        </div>
+
+        <h1>
+          Starkville Planning<br>
+          AI Assistant
+        </h1>
+
+        <p>
+          Ask questions about land uses, zoning districts,
+          and development requirements in the City of
+          Starkville Unified Development Code.
         </p>
       </div>
 
-      <button
-        id="new-chat-button"
-        class="secondary-button"
-        type="button"
-      >
-        New Conversation
-      </button>
 
-    </header>
-
-
-    <div class="notice">
-      <strong>Informational tool:</strong>
-      This assistant does not replace the officially adopted Unified
-      Development Code or an official determination by City staff.
-    </div>
-
-
-    <section
-      id="chat"
-      class="chat"
-      aria-live="polite"
-      aria-label="Conversation"
-    >
-
-      <div class="message assistant-message">
-
-        <div class="message-label">
-          Planning Assistant
+      <div class="hero-card">
+        <div class="hero-card-icon">
+          ?
         </div>
 
-        <div class="message-content">
+        <div>
+          <strong>
+            Need help getting started?
+          </strong>
 
           <p>
-            Hello! I can help you understand how the Starkville UDC
-            applies to common land-use questions.
+            Try asking whether a particular land use is
+            permitted in a zoning district.
           </p>
+        </div>
+      </div>
 
-          <p>For example, try asking:</p>
+    </div>
+  </section>
 
-          <ul>
-            <li>Can I open a restaurant in TN-N?</li>
-            <li>Can I build a parking garage in T-5C?</li>
-            <li>Can I operate a food truck in O-I?</li>
-          </ul>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+
+    <div class="assistant-shell">
+
+      <!-- TOP TOOLBAR -->
+      <div class="assistant-toolbar">
+
+        <div>
+          <span class="toolbar-label">
+            STARKVILLE PLANNING
+          </span>
+
+          <h2>
+            Ask a zoning question
+          </h2>
+        </div>
+
+
+        <button
+          id="new-chat-button"
+          class="new-chat-button"
+          type="button"
+        >
+          New Conversation
+        </button>
+
+      </div>
+
+
+      <!-- EXAMPLE QUESTIONS -->
+      <div class="examples-panel">
+
+        <div class="examples-heading">
+          Example questions
+        </div>
+
+        <div class="example-grid">
+
+          <button
+            class="example-question"
+            type="button"
+            onclick="
+              document.getElementById('question').value =
+              'Can I open a restaurant in TN-N?';
+              document.getElementById('question').focus();
+            "
+          >
+            <span class="example-icon">
+              01
+            </span>
+
+            <span>
+              Can I open a restaurant in TN-N?
+            </span>
+          </button>
+
+
+          <button
+            class="example-question"
+            type="button"
+            onclick="
+              document.getElementById('question').value =
+              'Can I build a parking garage in T-5C?';
+              document.getElementById('question').focus();
+            "
+          >
+            <span class="example-icon">
+              02
+            </span>
+
+            <span>
+              Can I build a parking garage in T-5C?
+            </span>
+          </button>
+
+
+          <button
+            class="example-question"
+            type="button"
+            onclick="
+              document.getElementById('question').value =
+              'Can I operate a food truck in O-I?';
+              document.getElementById('question').focus();
+            "
+          >
+            <span class="example-icon">
+              03
+            </span>
+
+            <span>
+              Can I operate a food truck in O-I?
+            </span>
+          </button>
 
         </div>
 
       </div>
 
-    </section>
 
-
-    <div
-      id="status"
-      class="status"
-      aria-live="polite"
-    ></div>
-
-
-    <form id="chat-form" class="input-area">
-
-      <label for="question" class="sr-only">
-        Ask a zoning question
-      </label>
-
-      <textarea
-        id="question"
-        rows="2"
-        maxlength="2000"
-        placeholder="Ask a zoning question..."
-        autocomplete="off"
-        required
-      ></textarea>
-
-      <button
-        id="send-button"
-        class="primary-button"
-        type="submit"
+      <!-- CHAT AREA -->
+      <section
+        class="chat-panel"
+        aria-label="Planning assistant conversation"
       >
-        Send
-      </button>
 
-    </form>
+        <div
+          id="chat"
+          class="chat"
+          aria-live="polite"
+        >
+
+          <div class="message assistant-message">
+
+            <div class="message-label">
+              Planning Assistant
+            </div>
+
+            <div class="message-content">
+
+              <p>
+                Hello! Ask me a zoning question about
+                land uses or development requirements
+                in Starkville.
+              </p>
+
+              <p>
+                For example:
+                <strong>
+                  “Can I open a restaurant in TN-N?”
+                </strong>
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
 
 
-    <footer class="footer">
+        <!-- STATUS -->
+        <div
+          id="status"
+          class="status"
+          role="status"
+          aria-live="polite"
+        ></div>
 
-      <p>
-        The officially adopted City of Starkville Unified Development Code
-        remains the controlling legal source.
-      </p>
 
-    </footer>
+        <!-- INPUT -->
+        <div class="composer-wrapper">
+
+          <form
+            id="chat-form"
+            class="chat-form"
+          >
+
+            <label
+              class="visually-hidden"
+              for="question"
+            >
+              Ask a zoning question
+            </label>
+
+            <textarea
+              id="question"
+              name="question"
+              rows="2"
+              maxlength="2000"
+              placeholder="Ask a zoning question..."
+              required
+            ></textarea>
+
+            <button
+              id="send-button"
+              type="submit"
+            >
+              <span>
+                Send
+              </span>
+
+              <span
+                class="send-arrow"
+                aria-hidden="true"
+              >
+                →
+              </span>
+            </button>
+
+          </form>
+
+          <div class="input-helper">
+            Press Enter to send • Shift + Enter for a new line
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+
+
+    <!-- DISCLAIMER -->
+    <aside class="notice">
+
+      <div class="notice-icon">
+        i
+      </div>
+
+      <div>
+        <strong>
+          Informational planning assistance
+        </strong>
+
+        <p>
+          This assistant is provided for informational
+          purposes. The officially adopted City of
+          Starkville Unified Development Code remains
+          the controlling legal source. Always review
+          the applicable UDC provisions and consult City
+          staff when an official determination is needed.
+        </p>
+      </div>
+
+    </aside>
 
   </main>
 
 
-<script src="app.js?v=2"></script>
+  <!-- FOOTER -->
+  <footer class="site-footer">
+
+    <div class="footer-inner">
+
+      <div>
+        <strong>
+          City of Starkville
+        </strong>
+
+        <span>
+          Planning & Community Development
+        </span>
+      </div>
+
+      <div class="footer-links">
+
+        <a
+          href="https://starkville.municipalcodeonline.com/book?type=development"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Unified Development Code
+        </a>
+
+        <a
+          href="https://www.cityofstarkville.org/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          City Website
+        </a>
+
+      </div>
+
+    </div>
+
+  </footer>
+
+
+  <!-- Keep the version number so browsers load the newest JS -->
+  <script src="app.js?v=2"></script>
+
 </body>
 </html>
