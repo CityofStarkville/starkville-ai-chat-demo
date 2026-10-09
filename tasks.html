@@ -70,7 +70,7 @@
             <div><label for="new-priority">Priority</label><select id="new-priority"><option value="normal">Normal</option><option value="low">Low</option><option value="high">High</option></select></div>
             <div><label for="new-due">Due date</label><input id="new-due" type="date"></div>
             <div class="span-4"><label for="new-description">Description</label><textarea id="new-description" maxlength="2000"></textarea></div>
-            <div id="create-assignee-field" class="span-2 hidden"><label for="new-assignee">Assign to (Cognito user ID)</label><input id="new-assignee" maxlength="2000" placeholder="Employee's Cognito sub"></div>
+            <div id="create-assignee-field" class="span-2 hidden"><label for="new-assignee">Assign to employee</label><select id="new-assignee" disabled><option value="">Loading employees...</option></select></div>
           </div>
           <div class="actions"><button type="submit">Create task</button></div>
         </form>
@@ -94,6 +94,7 @@
   });
   const $ = id => document.getElementById(id);
   let accessToken = null, userClaims = null, admin = false, nextCursor = null, tasks = [];
+  let employees = [], employeeDirectoryReady = false;
   const enc = new TextEncoder();
   function message(text, error = false) {
     const box = $('notice'); box.textContent = text; box.classList.toggle('error', error); box.classList.remove('hidden');
@@ -134,7 +135,8 @@
     if (claims.iss !== 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_RzVWOxX8F' || claims.aud !== CONFIG.clientId || claims.exp * 1000 <= Date.now()) throw new Error('Unexpected sign-in response.');
     const groups = claims['cognito:groups'] || [];
     const groupList = Array.isArray(groups) ? groups : String(groups).replace(/^\[|\]$/g,'').split(',').map(s=>s.trim());
-if (!groupList.includes('StarkvilleTaskStaff') && !groupList.includes('StarkvilleTaskAdmins')) throw new Error('This account has not been granted Task Manager access.');    accessToken = tokens.access_token;
+if (!groupList.includes('StarkvilleTaskStaff') && !groupList.includes('StarkvilleTaskAdmins')) throw new Error('This account has not been granted Task Manager access.');
+    accessToken = tokens.access_token;
     userClaims = claims;
     admin = groupList.includes('StarkvilleTaskAdmins');
     return true;
@@ -147,6 +149,8 @@ if (!groupList.includes('StarkvilleTaskStaff') && !groupList.includes('Starkvill
   }
   function signOut() {
     accessToken = null; userClaims = null; admin = false; tasks = []; nextCursor = null;
+    employees = []; employeeDirectoryReady = false;
+    populateCreateAssignees();
     sessionStorage.removeItem('starkville_pkce');
     $('app').classList.add('hidden'); $('signed-out').classList.remove('hidden'); $('logout').classList.add('hidden'); $('identity').textContent = '';
     message('Signed out of this Task Manager page.');
@@ -162,6 +166,47 @@ if (!groupList.includes('StarkvilleTaskStaff') && !groupList.includes('Starkvill
       throw new Error(data.error || `Request failed (HTTP ${response.status}).`);
     }
     return data;
+  }
+  // The employee directory is restricted to administrators by the API.
+  // Only Cognito user IDs are sent when saving assignments.
+  function employeeLabel(employee) {
+    const email = employee.email || employee.name || employee.sub;
+    return employee.name && employee.name !== email ? employee.name + ' (' + email + ')' : email;
+  }
+  function employeeChoices(currentSub = '') {
+    const choices = [['', 'Unassigned']];
+    for (const employee of employees) choices.push([employee.sub, employeeLabel(employee)]);
+    if (currentSub && !employees.some(employee => employee.sub === currentSub)) {
+      // Preserve assignments to employees no longer in the current directory.
+      choices.push([currentSub, 'Previously assigned employee (' + currentSub + ')']);
+    }
+    return choices;
+  }
+  function populateCreateAssignees() {
+    const select = $('new-assignee');
+    select.replaceChildren();
+    for (const [value, label] of employeeChoices()) {
+      select.append(element('option', {value}, label));
+    }
+    select.disabled = !admin || !employeeDirectoryReady;
+  }
+  async function loadEmployees() {
+    if (!admin) return;
+    employeeDirectoryReady = false;
+    populateCreateAssignees();
+    try {
+      const data = await api('/employees');
+      if (!Array.isArray(data.employees)) throw new Error('Invalid employee directory response.');
+      employees = data.employees.filter(employee =>
+        employee && typeof employee.sub === 'string' && employee.sub &&
+        typeof employee.email === 'string'
+      );
+      employeeDirectoryReady = true;
+    } catch (err) {
+      employees = [];
+      message('Could not load employee assignments: ' + err.message + ' You can still manage other task details.', true);
+    }
+    populateCreateAssignees();
   }
   function element(tag, attrs = {}, text = null) {
     const node = document.createElement(tag);
@@ -199,8 +244,16 @@ if (!groupList.includes('StarkvilleTaskStaff') && !groupList.includes('Starkvill
       const description = field(fields,'Description',task.description,'textarea',{span:'span-4'});
       const due = field(fields,'Due date',task.due_date,'date');
       let assignee;
-      if (admin) assignee = field(fields,'Assigned to (Cognito user ID)',task.assigned_to,'text',{span:'span-2',maxlength:2000});
-      else fields.append(element('div',{class:'span-2 muted small'},'Assigned to: ' + (task.assigned_to || 'Unassigned')));
+      if (admin && employeeDirectoryReady) {
+        assignee = field(fields,'Assigned to employee',task.assigned_to,'select',{
+          span:'span-2', choices:employeeChoices(task.assigned_to || '')
+        });
+      } else if (admin) {
+        fields.append(element('div',{class:'span-2 muted small'},
+          'Assigned to: ' + (task.assigned_to || 'Unassigned') + ' (directory unavailable)'));
+      } else {
+        fields.append(element('div',{class:'span-2 muted small'},'Assigned to: ' + (task.assigned_to || 'Unassigned')));
+      }
       form.append(fields);
       const actions = element('div',{class:'actions'}), save = element('button',{type:'submit'},'Save changes'); actions.append(save);
       if (admin) {
@@ -217,7 +270,7 @@ if (!groupList.includes('StarkvilleTaskStaff') && !groupList.includes('Starkvill
       form.addEventListener('submit', async e => {
         e.preventDefault(); save.disabled = true; clearMessage();
         const changes = {title:title.value.trim(),status:status.value,priority:priority.value,description:description.value,due_date:due.value};
-        if (admin) changes.assigned_to = assignee.value.trim();
+        if (admin && assignee) changes.assigned_to = assignee.value;
         try { await api('/tasks/' + encodeURIComponent(task.task_id),{method:'PATCH',body:JSON.stringify(changes)}); message('Task updated successfully.'); await loadTasks(); }
         catch (err) { message(err.message,true); save.disabled = false; }
       });
@@ -245,14 +298,14 @@ if (!groupList.includes('StarkvilleTaskStaff') && !groupList.includes('Starkvill
     e.preventDefault(); clearMessage();
     const submit = e.currentTarget.querySelector('button[type=submit]'); submit.disabled = true;
     const payload = {title:$('new-title').value.trim(),description:$('new-description').value,priority:$('new-priority').value,due_date:$('new-due').value};
-    if (admin && $('new-assignee').value.trim()) payload.assigned_to = $('new-assignee').value.trim();
+    if (admin && employeeDirectoryReady && $('new-assignee').value) payload.assigned_to = $('new-assignee').value;
     try { await api('/tasks',{method:'POST',body:JSON.stringify(payload)}); $('create-form').reset(); message('Task created successfully.'); await loadTasks(); }
     catch (err) { message(err.message,true); }
     finally { submit.disabled = false; }
   });
   (async () => {
     try {
-      if (await handleCallback()) { showApp(); await loadTasks(); }
+      if (await handleCallback()) { showApp(); await loadEmployees(); await loadTasks(); }
     } catch (err) { message(err.message,true); }
   })();
   </script>
