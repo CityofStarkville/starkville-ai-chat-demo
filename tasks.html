@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Employee Task Manager | City of Starkville</title>
+  <style>
+    :root { color-scheme: light; --navy:#152c47; --blue:#245d90; --light:#f3f6fa; --line:#d9e2ec; --ink:#23354b; --muted:#617286; --red:#b43333; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--light); color:var(--ink); font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+    header { background:var(--navy); color:white; padding:22px max(20px,calc((100vw - 1100px)/2)); }
+    .header-row { display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; }
+    .eyebrow { font-size:12px; letter-spacing:.11em; text-transform:uppercase; opacity:.8; font-weight:700; }
+    h1 { margin:3px 0 0; font-size:clamp(22px,3vw,30px); }
+    h2 { font-size:19px; margin:0 0 14px; }
+    main { max-width:1100px; padding:24px 20px 60px; margin:auto; }
+    .panel { background:white; border:1px solid var(--line); border-radius:14px; padding:22px; margin-bottom:20px; box-shadow:0 3px 16px #152c470a; }
+    .hidden { display:none !important; }
+    .toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .muted { color:var(--muted); }
+    .small { font-size:13px; }
+    button { background:var(--blue); border:1px solid var(--blue); border-radius:8px; color:white; padding:10px 15px; cursor:pointer; font:inherit; font-weight:650; }
+    button:hover { filter:brightness(.94); }
+    button:disabled { opacity:.55; cursor:wait; }
+    button.secondary { background:white; color:var(--blue); }
+    button.danger { background:white; color:var(--red); border-color:#e2b3b3; }
+    header button { background:transparent; color:white; border-color:#91a6bb; }
+    label { display:block; font-size:13px; font-weight:650; margin-bottom:5px; }
+    input,select,textarea { width:100%; min-width:0; border:1px solid #b8c6d5; border-radius:8px; background:white; padding:10px; font:inherit; color:var(--ink); }
+    textarea { resize:vertical; min-height:72px; }
+    input:focus,select:focus,textarea:focus { outline:2px solid #86b4df; outline-offset:1px; }
+    .fields { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+    .span-2 { grid-column:span 2; }
+    .span-4 { grid-column:span 4; }
+    .actions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:16px; }
+    .task-list { display:grid; gap:14px; }
+    .task { background:white; border:1px solid var(--line); border-radius:12px; padding:19px; }
+    .task-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:13px; }
+    .task-head h3 { margin:0; font-size:17px; overflow-wrap:anywhere; }
+    .tag { background:#e8f0f8; color:#1d5685; padding:4px 9px; border-radius:999px; font-size:12px; font-weight:700; white-space:nowrap; }
+    .task-meta { margin:12px 0 0; font-size:12px; color:var(--muted); overflow-wrap:anywhere; }
+    .notice { padding:12px 15px; border-radius:9px; margin-bottom:18px; background:#e9f2fc; border:1px solid #bfd6ed; }
+    .notice.error { background:#fff0f0; border-color:#edb9b9; color:#8b2222; }
+    .empty { text-align:center; padding:35px; color:var(--muted); }
+    @media(max-width:700px) { .fields { grid-template-columns:repeat(2,minmax(0,1fr)); } .span-4 { grid-column:span 2; } }
+    @media(max-width:430px) { .fields { grid-template-columns:1fr; } .span-2,.span-4 { grid-column:span 1; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-row">
+      <div><div class="eyebrow">City of Starkville · Employee Services</div><h1>Task Manager</h1></div>
+      <div class="toolbar"><span id="identity" class="small"></span><button id="logout" class="hidden" type="button">Sign out</button></div>
+    </div>
+  </header>
+  <main>
+    <div id="notice" class="notice hidden" role="status" aria-live="polite"></div>
+    <section id="signed-out" class="panel">
+      <h2>Employee sign-in</h2>
+      <p class="muted">Sign in with your City-authorized account to view and manage tasks. Access requires membership in an approved Cognito group.</p>
+      <button id="login" type="button">Sign in with City account</button>
+    </section>
+    <div id="app" class="hidden">
+      <section class="panel">
+        <div class="toolbar"><h2>Create a task</h2><span id="role" class="tag"></span></div>
+        <form id="create-form">
+          <div class="fields">
+            <div class="span-2"><label for="new-title">Task title *</label><input id="new-title" maxlength="200" required></div>
+            <div><label for="new-priority">Priority</label><select id="new-priority"><option value="normal">Normal</option><option value="low">Low</option><option value="high">High</option></select></div>
+            <div><label for="new-due">Due date</label><input id="new-due" type="date"></div>
+            <div class="span-4"><label for="new-description">Description</label><textarea id="new-description" maxlength="2000"></textarea></div>
+            <div id="create-assignee-field" class="span-2 hidden"><label for="new-assignee">Assign to (Cognito user ID)</label><input id="new-assignee" maxlength="2000" placeholder="Employee's Cognito sub"></div>
+          </div>
+          <div class="actions"><button type="submit">Create task</button></div>
+        </form>
+      </section>
+      <section class="panel">
+        <div class="toolbar"><h2>Tasks</h2><button class="secondary" id="refresh" type="button">Refresh</button></div>
+        <p class="muted small">Staff can update task details and status. Administrators can also change assignments and delete tasks.</p>
+        <div id="task-list" class="task-list" aria-live="polite"></div>
+        <div class="actions"><button class="secondary hidden" id="load-more" type="button">Load more tasks</button></div>
+      </section>
+    </div>
+  </main>
+  <script>
+  'use strict';
+  // Public identifiers only. Never put a password, client secret, or AWS key in this file.
+  const CONFIG = Object.freeze({
+    cognitoDomain: 'https://us-east-1rzvwoxx8f.auth.us-east-1.amazoncognito.com',
+    clientId: '5ucf200p7t7rbtpuihaqvqrfsf',
+    redirectUri: 'https://cityofstarkville.github.io/starkville-ai-chat-demo/tasks.html',
+    apiBase: 'https://3q769femdc.execute-api.us-east-1.amazonaws.com'
+  });
+  const $ = id => document.getElementById(id);
+  let accessToken = null, userClaims = null, admin = false, nextCursor = null, tasks = [];
+  const enc = new TextEncoder();
+  function message(text, error = false) {
+    const box = $('notice'); box.textContent = text; box.classList.toggle('error', error); box.classList.remove('hidden');
+  }
+  function clearMessage() { $('notice').classList.add('hidden'); }
+  function b64url(bytes) { return btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+  function randomString() { return b64url(crypto.getRandomValues(new Uint8Array(32))); }
+  async function challenge(verifier) { return b64url(new Uint8Array(await crypto.subtle.digest('SHA-256', enc.encode(verifier)))); }
+  function decodeJwt(token) {
+    const payload = token.split('.')[1];
+    const padded = payload.replace(/-/g,'+').replace(/_/g,'/') + '='.repeat((4 - payload.length % 4) % 4);
+    return JSON.parse(atob(padded));
+  }
+  async function login() {
+    try {
+      const verifier = randomString(), state = randomString();
+      sessionStorage.setItem('starkville_pkce', JSON.stringify({verifier, state, created:Date.now()}));
+      const params = new URLSearchParams({response_type:'code',client_id:CONFIG.clientId,redirect_uri:CONFIG.redirectUri,scope:'openid email',state,code_challenge_method:'S256',code_challenge:await challenge(verifier)});
+      location.assign(CONFIG.cognitoDomain + '/oauth2/authorize?' + params);
+    } catch { message('Unable to start sign-in. Please try again.', true); }
+  }
+  async function handleCallback() {
+    const url = new URL(location.href);
+    const code = url.searchParams.get('code'), state = url.searchParams.get('state');
+    const error = url.searchParams.get('error');
+    if (!code && !error) return false;
+    history.replaceState({}, '', CONFIG.redirectUri);
+    if (error) throw new Error('Sign-in was cancelled or denied. Please try again.');
+    const saved = JSON.parse(sessionStorage.getItem('starkville_pkce') || 'null');
+    sessionStorage.removeItem('starkville_pkce');
+    if (!saved || !state || saved.state !== state || Date.now() - saved.created > 600000) throw new Error('Sign-in session expired. Please try again.');
+    const body = new URLSearchParams({grant_type:'authorization_code',client_id:CONFIG.clientId,code,redirect_uri:CONFIG.redirectUri,code_verifier:saved.verifier});
+    const response = await fetch(CONFIG.cognitoDomain + '/oauth2/token', {method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+    if (!response.ok) throw new Error('Could not finish sign-in. Please try again.');
+    const tokens = await response.json();
+    if (!tokens.access_token || !tokens.id_token) throw new Error('Sign-in did not return the required tokens.');
+    const claims = decodeJwt(tokens.id_token);
+    if (claims.iss !== 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_RzVWOxX8F' || claims.aud !== CONFIG.clientId || claims.exp * 1000 <= Date.now()) throw new Error('Unexpected sign-in response.');
+    const groups = claims['cognito:groups'] || [];
+    const groupList = Array.isArray(groups) ? groups : String(groups).replace(/^\[|\]$/g,'').split(',').map(s=>s.trim());
+    if (!groupList.includes('StarkvilleTasksStaff') && !groupList.includes('StarkvilleTaskAdmins')) throw new Error('This account has not been granted Task Manager access.');
+    accessToken = tokens.access_token;
+    userClaims = claims;
+    admin = groupList.includes('StarkvilleTaskAdmins');
+    return true;
+  }
+  function showApp() {
+    $('signed-out').classList.add('hidden'); $('app').classList.remove('hidden'); $('logout').classList.remove('hidden');
+    $('identity').textContent = userClaims.email || 'Signed in';
+    $('role').textContent = admin ? 'Administrator' : 'Staff';
+    $('create-assignee-field').classList.toggle('hidden', !admin);
+  }
+  function signOut() {
+    accessToken = null; userClaims = null; admin = false; tasks = []; nextCursor = null;
+    sessionStorage.removeItem('starkville_pkce');
+    $('app').classList.add('hidden'); $('signed-out').classList.remove('hidden'); $('logout').classList.add('hidden'); $('identity').textContent = '';
+    message('Signed out of this Task Manager page.');
+  }
+  async function api(path, options = {}) {
+    if (!accessToken) throw new Error('Please sign in again.');
+    const headers = {'Authorization':'Bearer ' + accessToken};
+    if (options.body !== undefined) headers['Content-Type'] = 'application/json';
+    const response = await fetch(CONFIG.apiBase + path, {...options, headers, cache:'no-store'});
+    let data; try { data = await response.json(); } catch { data = {}; }
+    if (!response.ok) {
+      if (response.status === 401) throw new Error('Your session expired or was rejected. Please sign in again.');
+      throw new Error(data.error || `Request failed (HTTP ${response.status}).`);
+    }
+    return data;
+  }
+  function element(tag, attrs = {}, text = null) {
+    const node = document.createElement(tag);
+    for (const [key,value] of Object.entries(attrs)) node.setAttribute(key,value);
+    if (text !== null) node.textContent = String(text);
+    return node;
+  }
+  function field(parent, labelText, value, kind, opts = {}) {
+    const wrapper = element('div', {class:opts.span || ''});
+    const label = element('label', {}, labelText); wrapper.append(label);
+    let input;
+    if (kind === 'select') {
+      input = element('select');
+      for (const [val,title] of opts.choices) { const option = element('option',{value:val},title); input.append(option); }
+      input.value = value || opts.choices[0][0];
+    } else if (kind === 'textarea') {
+      input = element('textarea', {maxlength:'2000'}); input.value = value || '';
+    } else {
+      input = element('input', {type:kind, ...(opts.maxlength ? {maxlength:String(opts.maxlength)} : {})}); input.value = value || '';
+    }
+    label.append(input); wrapper.append(label); parent.append(wrapper);
+    return input;
+  }
+  function renderTasks() {
+    const list = $('task-list'); list.replaceChildren();
+    if (!tasks.length) { list.append(element('div',{class:'empty'},'No tasks found. Create the first task above.')); return; }
+    for (const task of tasks) {
+      const card = element('article',{class:'task'}), head = element('div',{class:'task-head'});
+      head.append(element('h3',{},task.title || 'Untitled task'), element('span',{class:'tag'},(task.priority || 'normal').toUpperCase()));
+      card.append(head);
+      const form = element('form'), fields = element('div',{class:'fields'});
+      const title = field(fields,'Title',task.title,'text',{span:'span-2',maxlength:200});
+      const status = field(fields,'Status',task.status,'select',{choices:[['todo','To do'],['in_progress','In progress'],['done','Done']]});
+      const priority = field(fields,'Priority',task.priority,'select',{choices:[['low','Low'],['normal','Normal'],['high','High']]});
+      const description = field(fields,'Description',task.description,'textarea',{span:'span-4'});
+      const due = field(fields,'Due date',task.due_date,'date');
+      let assignee;
+      if (admin) assignee = field(fields,'Assigned to (Cognito user ID)',task.assigned_to,'text',{span:'span-2',maxlength:2000});
+      else fields.append(element('div',{class:'span-2 muted small'},'Assigned to: ' + (task.assigned_to || 'Unassigned')));
+      form.append(fields);
+      const actions = element('div',{class:'actions'}), save = element('button',{type:'submit'},'Save changes'); actions.append(save);
+      if (admin) {
+        const del = element('button',{type:'button',class:'danger'},'Delete task');
+        del.addEventListener('click', async () => {
+          if (!confirm(`Permanently delete "${task.title}"?`)) return;
+          del.disabled = true;
+          try { await api('/tasks/' + encodeURIComponent(task.task_id),{method:'DELETE'}); message('Task deleted.'); await loadTasks(); }
+          catch (e) { message(e.message,true); del.disabled = false; }
+        });
+        actions.append(del);
+      }
+      form.append(actions);
+      form.addEventListener('submit', async e => {
+        e.preventDefault(); save.disabled = true; clearMessage();
+        const changes = {title:title.value.trim(),status:status.value,priority:priority.value,description:description.value,due_date:due.value};
+        if (admin) changes.assigned_to = assignee.value.trim();
+        try { await api('/tasks/' + encodeURIComponent(task.task_id),{method:'PATCH',body:JSON.stringify(changes)}); message('Task updated successfully.'); await loadTasks(); }
+        catch (err) { message(err.message,true); save.disabled = false; }
+      });
+      card.append(form,element('p',{class:'task-meta'},'Task ID: ' + task.task_id + ' · Updated: ' + (task.updated_at || 'Unknown')));
+      list.append(card);
+    }
+  }
+  async function loadTasks(more = false) {
+    const button = more ? $('load-more') : $('refresh'); button.disabled = true;
+    try {
+      const path = '/tasks' + (more && nextCursor ? '?cursor=' + encodeURIComponent(nextCursor) : '');
+      const data = await api(path);
+      tasks = more ? tasks.concat(data.tasks || []) : (data.tasks || []);
+      nextCursor = data.next_cursor || null;
+      $('load-more').classList.toggle('hidden',!nextCursor);
+      renderTasks();
+    } catch (err) { message(err.message,true); }
+    finally { button.disabled = false; }
+  }
+  $('login').addEventListener('click',login);
+  $('logout').addEventListener('click',signOut);
+  $('refresh').addEventListener('click',()=>loadTasks());
+  $('load-more').addEventListener('click',()=>loadTasks(true));
+  $('create-form').addEventListener('submit',async e => {
+    e.preventDefault(); clearMessage();
+    const submit = e.currentTarget.querySelector('button[type=submit]'); submit.disabled = true;
+    const payload = {title:$('new-title').value.trim(),description:$('new-description').value,priority:$('new-priority').value,due_date:$('new-due').value};
+    if (admin && $('new-assignee').value.trim()) payload.assigned_to = $('new-assignee').value.trim();
+    try { await api('/tasks',{method:'POST',body:JSON.stringify(payload)}); $('create-form').reset(); message('Task created successfully.'); await loadTasks(); }
+    catch (err) { message(err.message,true); }
+    finally { submit.disabled = false; }
+  });
+  (async () => {
+    try {
+      if (await handleCallback()) { showApp(); await loadTasks(); }
+    } catch (err) { message(err.message,true); }
+  })();
+  </script>
+</body>
+</html>
