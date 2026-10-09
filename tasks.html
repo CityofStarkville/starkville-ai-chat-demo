@@ -134,8 +134,7 @@
     if (claims.iss !== 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_RzVWOxX8F' || claims.aud !== CONFIG.clientId || claims.exp * 1000 <= Date.now()) throw new Error('Unexpected sign-in response.');
     const groups = claims['cognito:groups'] || [];
     const groupList = Array.isArray(groups) ? groups : String(groups).replace(/^\[|\]$/g,'').split(',').map(s=>s.trim());
-    if (!groupList.includes('StarkvilleTasksStaff') && !groupList.includes('StarkvilleTaskAdmins')) throw new Error('This account has not been granted Task Manager access.');
-    accessToken = tokens.access_token;
+if (!groupList.includes('StarkvilleTaskStaff') && !groupList.includes('StarkvilleTaskAdmins')) throw new Error('This account has not been granted Task Manager access.');    accessToken = tokens.access_token;
     userClaims = claims;
     admin = groupList.includes('StarkvilleTaskAdmins');
     return true;
