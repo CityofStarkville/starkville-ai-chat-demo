@@ -1293,3 +1293,92 @@ textarea:focus-visible {
   }
 
 }
+
+/* =========================================================
+   COMPACT SHARED CITY NAVIGATION — matches Task Manager
+   ========================================================= */
+body {
+  background: #f3f7f7;
+  color: #17363c;
+  font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+.site-header {
+  background: linear-gradient(110deg, #103f43 0%, #176366 65%, #247b7d 100%);
+  border-bottom: 3px solid #df4144;
+}
+.header-inner {
+  width: min(1160px, calc(100% - 40px));
+  min-height: 68px;
+  padding: 11px 0;
+  gap: 18px;
+}
+.city-brand { gap: 12px; flex-shrink: 0; }
+.brand-mark { width: 40px; height: 40px; font-size: 22px; border-width: 1.5px; }
+.brand-text { gap: 0; }
+.brand-city { margin: 0; font-size: 10px; letter-spacing: .14em; font-weight: 800; opacity: .82; }
+.brand-name { font-size: 19px; font-weight: 800; line-height: 1.18; letter-spacing: -.025em; }
+.site-nav { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.nav-link {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 9px 13px; border: 1px solid transparent; border-radius: 8px;
+  color: #e6f5f4; font-size: 13px; font-weight: 750;
+  text-decoration: none; white-space: nowrap;
+}
+.nav-link:hover { color: white; background: rgba(255,255,255,.11); }
+.nav-link.active, .nav-link[aria-current="page"] {
+  background: rgba(255,255,255,.17); border-color: rgba(255,255,255,.27); color: white;
+}
+.main-content { width: min(1160px, calc(100% - 40px)); margin: 0 auto 48px; }
+.page-intro {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 18px; padding: 23px 0 17px;
+}
+.page-eyebrow { color: #176366; font-size: 10px; font-weight: 800; letter-spacing: .14em; }
+.page-intro h1 { margin: 3px 0 3px; font-size: 23px; line-height: 1.22; letter-spacing: -.025em; }
+.page-intro p { margin: 0; font-size: 13px; color: #61777a; }
+.city-website-link { flex: 0 0 auto; color: #176366; text-decoration: none; font-weight: 750; font-size: 12px; }
+.city-website-link:hover { text-decoration: underline; }
+.assistant-shell { border-radius: 13px; box-shadow: 0 3px 14px #173e4007; }
+.assistant-toolbar { padding: 19px 22px; gap: 18px; }
+.assistant-toolbar h2 { font-size: 18px; }
+.new-chat-button { padding: 9px 14px; border-radius: 8px; font-size: 13px; }
+.examples-panel { padding: 15px 22px 17px; }
+.example-grid { gap: 10px; }
+.example-question { min-height: 60px; padding: 10px 12px; border-radius: 10px; font-size: 13px; }
+.example-icon { width: 30px; height: 30px; }
+.chat { min-height: 310px; max-height: 620px; padding: 23px 22px; }
+.message { margin-bottom: 21px; }
+.message-content { padding: 14px 16px; border-radius: 12px; }
+.composer-wrapper { padding: 16px 22px 19px; }
+.chat-form textarea { min-height: 57px; padding: 12px 14px; border-radius: 8px; }
+#send-button { border-radius: 8px; min-width: 94px; background: #176366; }
+#send-button:hover { background: #103f43; }
+.notice { margin-top: 16px; padding: 15px 18px; border-radius: 12px; }
+.site-footer { background: #103f43; }
+.footer-inner { width: min(1160px, calc(100% - 40px)); min-height: 78px; }
+.nav-link:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+@media(max-width: 700px) {
+  .header-inner { width: calc(100% - 26px); flex-wrap: wrap; gap: 7px 12px; padding: 10px 0; }
+  .site-nav { width: 100%; }
+  .nav-link { padding: 7px 11px; font-size: 12px; }
+  .brand-mark { width: 34px; height: 34px; font-size: 18px; }
+  .brand-name { font-size: 16px; }
+  .brand-city { font-size: 9px; }
+  .main-content { width: calc(100% - 24px); margin: 0 auto 32px; padding: 0; }
+  .page-intro { padding: 18px 0 13px; }
+  .page-intro h1 { font-size: 20px; }
+  .page-intro p { font-size: 12px; }
+  .city-website-link { display: none; }
+  .assistant-toolbar { flex-direction: row; align-items: center; padding: 16px; }
+  .assistant-toolbar h2 { font-size: 16px; }
+  .new-chat-button { padding: 8px 10px; }
+  .examples-panel { padding: 14px 16px; }
+  .chat { min-height: 310px; padding: 17px 16px; }
+  .composer-wrapper { padding: 15px 16px; }
+  .notice { margin: 15px 0 0; }
+  .footer-inner { width: calc(100% - 28px); }
+}
+@media(max-width: 400px) {
+  .assistant-toolbar { flex-wrap: wrap; }
+  .site-nav { gap: 2px; }
+}
