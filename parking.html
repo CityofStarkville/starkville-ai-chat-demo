@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="City of Starkville employee AI workspace and tools.">
+  <title>Parking Reductions | City of Starkville</title>
+  <link rel="stylesheet" href="style.css?v=6">
+  <link rel="stylesheet" href="parking.css?v=1">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="city-brand" aria-label="City of Starkville">
+        <div class="brand-mark" aria-hidden="true">S</div>
+        <div class="brand-text">
+          <span class="brand-city">CITY OF STARKVILLE · COMMUNITY DEVELOPMENT</span>
+          <span class="brand-name">Parking Reductions</span>
+        </div>
+      </div>
+      <nav id="workspace-nav" class="site-nav" aria-label="City applications" hidden>
+        <a class="nav-link" href="index.html">Home</a>
+        <a class="nav-link" href="chat.html">Planning AI</a>
+        <a class="nav-link" href="tasks.html">Task Manager</a>
+        <a class="nav-link active" href="parking.html" aria-current="page">Parking Reductions</a>
+      </nav>
+      <button id="workspace-signout" class="workspace-signout" type="button" hidden>Sign out</button>
+    </div>
+  </header>
+  <main id="login-gate" class="login-gate" aria-live="polite">
+    <div class="login-panel">
+      <div class="login-lock" aria-hidden="true">S</div>
+      <div class="page-eyebrow">CITY OF STARKVILLE · EMPLOYEE SERVICES</div>
+      <h1>City AI Workspace</h1>
+      <p>Sign in with your authorized City account to use the Planning AI Assistant and Task Manager.</p>
+      <button id="workspace-login" type="button">Sign in with City account</button>
+      <p id="workspace-login-error" class="login-error" role="alert" hidden></p>
+    </div>
+  </main>
+  <div id="workspace" hidden>
+    <main class="main-content parking-content">
+      <div class="page-intro"><div>
+        <div class="page-eyebrow">SHARED PARKING · WORKBOOK SECTION 14.10.4</div>
+        <h1>Parking reductions for required parking</h1>
+        <p>Enter the parking required for each use before applying a shared-parking reduction.</p>
+      </div></div>
+      <div class="parking-tools">
+        <div><label for="project-name">Project name (optional)</label><input id="project-name" maxlength="150" placeholder="Project or property name"></div>
+        <div class="parking-actions"><button id="print-calculation" type="button">Print calculation</button><button id="reset-calculation" class="parking-secondary" type="button">Clear inputs</button></div>
+      </div>
+      <section class="parking-summary" aria-label="Calculation summary" aria-live="polite">
+        <div><span>Required parking before reduction</span><strong id="base-total">0</strong><small>spaces</small></div>
+        <div class="parking-featured"><span>Highest combined demand</span><strong id="peak-total">0</strong><small>spaces · decimal result</small></div>
+        <div><span>Calculated reduction</span><strong id="reduction-total">0</strong><small id="reduction-percent">spaces · percentage unavailable until inputs are entered</small></div>
+      </section>
+      <p id="peak-period" class="parking-peak">Enter required parking to identify the peak time period.</p>
+      <p id="parking-error" role="alert" hidden></p>
+      <p id="parking-help">Blue cells are editable. Occupancy percentages match the supplied workbook. Demand = required spaces × occupancy rate.</p>
+      <p class="parking-scroll-hint">On smaller screens, scroll the table horizontally to see all six time periods.</p>
+      <div class="parking-scroll" role="region" aria-label="Parking occupancy and demand table; scroll horizontally for all periods" tabindex="0">
+        <table class="parking-table" aria-describedby="parking-help">
+          <caption>Parking occupancy rates and calculated demand</caption>
+          <colgroup><col style="width:220px"><col style="width:110px"><col span="12"></colgroup>
+          <thead>
+            <tr><th rowspan="3" scope="col">Uses</th><th rowspan="3" scope="col">Required<br>spaces</th><th colspan="6" scope="colgroup">Monday–Friday</th><th colspan="6" scope="colgroup">Saturday &amp; Sunday</th></tr>
+            <tr><th colspan="2" scope="colgroup">8 AM–6 PM</th><th colspan="2" scope="colgroup">6 PM–12 AM</th><th colspan="2" scope="colgroup">12 AM–8 AM</th><th colspan="2" scope="colgroup">8 AM–6 PM</th><th colspan="2" scope="colgroup">6 PM–12 AM</th><th colspan="2" scope="colgroup">12 AM–8 AM</th></tr>
+            <tr><th scope="col">Rate</th><th scope="col">Demand</th><th scope="col">Rate</th><th scope="col">Demand</th><th scope="col">Rate</th><th scope="col">Demand</th><th scope="col">Rate</th><th scope="col">Demand</th><th scope="col">Rate</th><th scope="col">Demand</th><th scope="col">Rate</th><th scope="col">Demand</th></tr>
+          </thead>
+          <tbody id="parking-rows"></tbody>
+          <tfoot>
+            <tr><th scope="row">Total required parking</th><td id="table-base">0</td><td colspan="12"></td></tr>
+            <tr><th scope="row" colspan="2">Parking demand per time period</th><td colspan="2" id="period-0">0</td><td colspan="2" id="period-1">0</td><td colspan="2" id="period-2">0</td><td colspan="2" id="period-3">0</td><td colspan="2" id="period-4">0</td><td colspan="2" id="period-5">0</td></tr>
+          </tfoot>
+        </table>
+      </div>
+      <div class="parking-method">
+        <h2>How the calculation works</h2>
+        <p>The weekday or weekend time period generating the highest demand indicates the shared-parking requirement for this combination of uses, as described in the workbook. Reduction = total required parking − highest combined demand.</p>
+        <p>Results remain decimal values; no whole-space rounding is applied. Enter up to two decimal places. Blank rows count as zero. Inputs stay on this page and reset when you reload or leave it.</p>
+        <p>Source: <strong>Parking Occupancy Rates.xlsx</strong>, Sheet1, section 14.10.4. This calculation reproduces the supplied table; confirm eligibility and applicable City requirements before using it for an approval.</p>
+      </div>
+    </main>
+  </div>
+  <script src="auth.js?v=3"></script>
+  <script src="parking-data.js?v=1"></script>
+  <script src="parking.js?v=1"></script>
+</body>
+</html>
