@@ -2,137 +2,36 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
-
-  <meta
-    name="description"
-    content="City of Starkville Planning AI Assistant for zoning and land use questions."
-  >
-
-  <title>Starkville Planning AI Assistant</title>
-
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="City of Starkville Planning AI Assistant for zoning and land use questions.">
+  <title>Planning AI Assistant | City of Starkville</title>
+  <link rel="stylesheet" href="style.css?v=4">
 </head>
-
 <body>
-
-  <!-- CITY-STYLE TOP BAR -->
-  <div class="utility-bar">
-    <div class="utility-inner">
-      <span>
-        City of Starkville Planning Department
-      </span>
-
-      <a
-        href="https://www.cityofstarkville.org/"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        City Website
-      </a>
-    </div>
-  </div>
-
-
-  <!-- MAIN HEADER -->
   <header class="site-header">
     <div class="header-inner">
-
-      <a
-        class="city-brand"
-        href="https://www.cityofstarkville.org/"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="City of Starkville website"
-      >
-        <div class="brand-mark">
-          S
-        </div>
-
+      <div class="city-brand" aria-label="City of Starkville">
+        <div class="brand-mark" aria-hidden="true">S</div>
         <div class="brand-text">
-          <span class="brand-city">
-            CITY OF
-          </span>
-
-          <span class="brand-name">
-            STARKVILLE
-          </span>
-
-          <span class="brand-tagline">
-            Mississippi's College Town
-          </span>
+          <span class="brand-city">CITY OF STARKVILLE · COMMUNITY DEVELOPMENT</span>
+          <span class="brand-name">Planning AI Assistant</span>
         </div>
-      </a>
-
-
-      <div class="header-title">
-        <span class="header-eyebrow">
-          Community Development
-        </span>
-
-        <strong>
-          Planning AI Assistant
-        </strong>
       </div>
-
+      <nav class="site-nav" aria-label="City applications">
+        <a class="nav-link active" href="./" aria-current="page">Planning AI</a>
+        <a class="nav-link" href="tasks.html">Task Manager</a>
+      </nav>
     </div>
   </header>
-
-
-  <!-- RED ACCENT -->
-  <div class="red-accent"></div>
-
-
-  <!-- INTRO/HERO -->
-  <section class="hero">
-    <div class="hero-inner">
-
-      <div class="hero-copy">
-        <div class="section-kicker">
-          PLANNING & ZONING
-        </div>
-
-        <h1>
-          Starkville Planning<br>
-          AI Assistant
-        </h1>
-
-        <p>
-          Ask questions about land uses, zoning districts,
-          and development requirements in the City of
-          Starkville Unified Development Code.
-        </p>
-      </div>
-
-
-      <div class="hero-card">
-        <div class="hero-card-icon">
-          ?
-        </div>
-
-        <div>
-          <strong>
-            Need help getting started?
-          </strong>
-
-          <p>
-            Try asking whether a particular land use is
-            permitted in a zoning district.
-          </p>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-
-  <!-- MAIN CONTENT -->
   <main class="main-content">
-
+    <div class="page-intro">
+      <div>
+        <div class="page-eyebrow">PLANNING &amp; ZONING</div>
+        <h1>Ask a zoning question</h1>
+        <p>Explore land uses, zoning districts, and development requirements in Starkville's Unified Development Code.</p>
+      </div>
+      <a class="city-website-link" href="https://www.cityofstarkville.org/" target="_blank" rel="noopener noreferrer">City Website ↗</a>
+    </div>
     <div class="assistant-shell">
 
       <!-- TOP TOOLBAR -->
@@ -332,6 +231,7 @@
     </div>
 
 
+
     <!-- DISCLAIMER -->
     <aside class="notice">
 
@@ -357,9 +257,6 @@
     </aside>
 
   </main>
-
-
-  <!-- FOOTER -->
   <footer class="site-footer">
 
     <div class="footer-inner">
@@ -397,10 +294,6 @@
     </div>
 
   </footer>
-
-
-  <!-- Keep the version number so browsers load the newest JS -->
   <script src="app.js?v=2"></script>
-
 </body>
 </html>
