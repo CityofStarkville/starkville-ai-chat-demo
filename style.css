@@ -1396,3 +1396,20 @@ body {
 #workspace-login { padding:12px 20px; background:#176366; color:white; border:0; border-radius:8px; font-weight:800; }
 #workspace-login:hover { background:#103f43; }
 @media(max-width:700px) { .workspace-signout { margin-left:auto; } .login-panel { padding:27px 19px; } }
+/* Dedicated employee home dashboard */
+.home-content { padding-bottom:32px; }
+.home-identity { color:#61777a; font-size:12px; overflow-wrap:anywhere; }
+.tool-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+.tool-card { display:flex; flex-direction:column; align-items:flex-start; padding:27px; background:#fff; border:1px solid #dce7e7; border-top:3px solid #237376; border-radius:13px; color:#17363c; text-decoration:none; box-shadow:0 3px 14px #173e4007; }
+.tool-card:nth-child(2) { border-top-color:#df4144; }
+.tool-card:hover { border-color:#237376; box-shadow:0 6px 20px #173e4015; }
+.tool-card:focus-visible,.home-resources a:focus-visible { outline:3px solid #237376; outline-offset:3px; }
+.tool-icon { display:grid; place-items:center; width:42px; height:42px; margin-bottom:20px; background:#e6f1f1; color:#176366; border-radius:10px; font-size:24px; font-weight:800; }
+.tool-card h2 { margin:5px 0 8px; font-size:23px; }
+.tool-card p { margin:0 0 25px; color:#61777a; font-size:14px; }
+.tool-action { margin-top:auto; color:#176366; font-weight:800; }
+.home-resources { display:flex; align-items:center; flex-wrap:wrap; gap:12px 24px; margin-top:22px; padding:20px 0; border-top:1px solid #dce7e7; }
+.home-resources h2 { font-size:14px; margin:0; }
+.home-resources a { color:#176366; font-size:13px; }
+@media(max-width:850px) { .header-inner { flex-wrap:wrap; } .site-nav { order:3; width:100%; } }
+@media(max-width:600px) { .tool-grid { grid-template-columns:1fr; gap:14px; } .tool-card { padding:22px; } .home-content .page-intro { align-items:flex-start; flex-direction:column; gap:8px; } }

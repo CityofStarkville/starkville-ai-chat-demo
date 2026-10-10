@@ -43,9 +43,9 @@
     return session;
   }
   async function startLogin(returnTo = './') {
-    // Only navigate to our own two app pages; prevent arbitrary redirects.
+    // Only navigate to our own workspace pages; prevent arbitrary redirects.
     const target = new URL(returnTo, ROOT);
-    if (target.origin !== new URL(ROOT).origin || ![ROOT, CALLBACK].includes(target.href)) throw new Error('Invalid return destination.');
+    if (target.origin !== new URL(ROOT).origin || ![ROOT, ROOT + 'index.html', ROOT + 'chat.html', CALLBACK].includes(target.href)) throw new Error('Invalid return destination.');
     const verifier = randomString(), state = randomString();
     const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
     sessionStorage.setItem(FLOW_KEY, JSON.stringify({verifier,state,target:target.href,created:Date.now()}));

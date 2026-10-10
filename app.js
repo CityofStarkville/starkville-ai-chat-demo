@@ -25,7 +25,7 @@ function showAccessState() {
   return session;
 }
 document.getElementById('workspace-login').addEventListener('click', async () => {
-  try { await AUTH.startLogin('./'); }
+  try { await AUTH.startLogin('chat.html'); }
   catch (e) { loginError.hidden = false; loginError.textContent = e.message || 'Unable to start sign-in.'; }
 });
 workspaceSignout.addEventListener('click', () => AUTH.signOut());
