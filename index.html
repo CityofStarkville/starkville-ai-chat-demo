@@ -17,12 +17,24 @@
           <span class="brand-name">Planning AI Assistant</span>
         </div>
       </div>
-      <nav class="site-nav" aria-label="City applications">
+      <nav id="workspace-nav" class="site-nav" aria-label="City applications" hidden>
         <a class="nav-link active" href="./" aria-current="page">Planning AI</a>
         <a class="nav-link" href="tasks.html">Task Manager</a>
       </nav>
+      <button id="workspace-signout" class="workspace-signout" type="button" hidden>Sign out</button>
     </div>
   </header>
+  <main id="login-gate" class="login-gate" aria-live="polite">
+    <div class="login-panel">
+      <div class="login-lock" aria-hidden="true">S</div>
+      <div class="page-eyebrow">CITY OF STARKVILLE · EMPLOYEE SERVICES</div>
+      <h1>City AI Workspace</h1>
+      <p>Sign in with your authorized City account to use the Planning AI Assistant and Task Manager.</p>
+      <button id="workspace-login" type="button">Sign in with City account</button>
+      <p id="workspace-login-error" class="login-error" role="alert" hidden></p>
+    </div>
+  </main>
+  <div id="workspace" hidden>
   <main class="main-content">
     <div class="page-intro">
       <div>
@@ -294,6 +306,8 @@
     </div>
 
   </footer>
-  <script src="app.js?v=2"></script>
+  </div>
+  <script src="auth.js?v=1"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>

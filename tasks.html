@@ -88,7 +88,7 @@
     @media(max-width:700px) { .fields { grid-template-columns:repeat(2,minmax(0,1fr)); } .span-4 { grid-column:span 2; } .header-inner { min-height:62px; } .task > summary { align-items:flex-start; } }
     @media(max-width:470px) { .fields { grid-template-columns:1fr; } .span-2,.span-4 { grid-column:span 1; } .seal { width:34px; height:34px; font-size:18px; } h1 { font-size:16px; } .eyebrow { font-size:9px; } .header-inner { padding:10px 13px; } main { padding:15px 12px 45px; } .board-heading,.board-body { padding-left:13px; padding-right:13px; } .tabs { padding-left:13px; padding-right:13px; } .task > summary { flex-direction:column; align-items:stretch; } .task-summary-right { justify-content:flex-start; } #identity { display:none; } .stat { padding:12px; } }
 
-    /* Navigation shared with the public Planning AI Assistant */
+    /* Navigation shared with the Planning AI Assistant */
     .site-nav { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-left:auto; }
     .nav-link { display:inline-flex; align-items:center; justify-content:center; padding:9px 13px; border:1px solid transparent; border-radius:8px; color:#e6f5f4; font-size:13px; font-weight:750; text-decoration:none; white-space:nowrap; }
     .nav-link:hover { color:#fff; background:#ffffff1c; }
@@ -112,8 +112,8 @@
   <main>
     <div id="notice" class="notice hidden" role="status" aria-live="polite"></div>
     <section id="signed-out" class="panel">
-      <h2>Employee sign-in</h2>
-      <p class="muted">Sign in with your City-authorized account to view and manage tasks. Access requires membership in an approved Cognito group.</p>
+      <h2>City employee sign-in</h2>
+      <p class="muted">Sign in once to access the Planning AI Assistant and Task Manager. Access requires an authorized City account.</p>
       <button id="login" type="button">Sign in with City account</button>
     </section>
     <div id="app" class="hidden">
@@ -156,63 +156,32 @@
       </section>
     </div>
   </main>
+  <script src="auth.js?v=1"></script>
   <script>
   'use strict';
   // Public identifiers only. Never put a password, client secret, or AWS key in this file.
-  const CONFIG = Object.freeze({
-    cognitoDomain: 'https://us-east-1rzvwoxx8f.auth.us-east-1.amazoncognito.com',
-    clientId: '5ucf200p7t7rbtpuihaqvqrfsf',
-    redirectUri: 'https://cityofstarkville.github.io/starkville-ai-chat-demo/tasks.html',
-    apiBase: 'https://3q769femdc.execute-api.us-east-1.amazonaws.com'
-  });
+  const CONFIG = Object.freeze({apiBase: 'https://3q769femdc.execute-api.us-east-1.amazonaws.com'});
+  const AUTH = window.StarkvilleAuth;
   const $ = id => document.getElementById(id);
   let accessToken = null, userClaims = null, admin = false, nextCursor = null, tasks = [];
   let employees = [], employeeDirectoryReady = false;
   let activeView = 'mine';
-  const enc = new TextEncoder();
   function message(text, error = false) {
     const box = $('notice'); box.textContent = text; box.classList.toggle('error', error); box.classList.remove('hidden');
   }
   function clearMessage() { $('notice').classList.add('hidden'); }
-  function b64url(bytes) { return btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
-  function randomString() { return b64url(crypto.getRandomValues(new Uint8Array(32))); }
-  async function challenge(verifier) { return b64url(new Uint8Array(await crypto.subtle.digest('SHA-256', enc.encode(verifier)))); }
-  function decodeJwt(token) {
-    const payload = token.split('.')[1];
-    const padded = payload.replace(/-/g,'+').replace(/_/g,'/') + '='.repeat((4 - payload.length % 4) % 4);
-    return JSON.parse(atob(padded));
-  }
   async function login() {
-    try {
-      const verifier = randomString(), state = randomString();
-      sessionStorage.setItem('starkville_pkce', JSON.stringify({verifier, state, created:Date.now()}));
-      const params = new URLSearchParams({response_type:'code',client_id:CONFIG.clientId,redirect_uri:CONFIG.redirectUri,scope:'openid email',state,code_challenge_method:'S256',code_challenge:await challenge(verifier)});
-      location.assign(CONFIG.cognitoDomain + '/oauth2/authorize?' + params);
-    } catch { message('Unable to start sign-in. Please try again.', true); }
+    try { await AUTH.startLogin('tasks.html'); }
+    catch (e) { message(e.message || 'Unable to start sign-in.', true); }
   }
   async function handleCallback() {
-    const url = new URL(location.href);
-    const code = url.searchParams.get('code'), state = url.searchParams.get('state');
-    const error = url.searchParams.get('error');
-    if (!code && !error) return false;
-    history.replaceState({}, '', CONFIG.redirectUri);
-    if (error) throw new Error('Sign-in was cancelled or denied. Please try again.');
-    const saved = JSON.parse(sessionStorage.getItem('starkville_pkce') || 'null');
-    sessionStorage.removeItem('starkville_pkce');
-    if (!saved || !state || saved.state !== state || Date.now() - saved.created > 600000) throw new Error('Sign-in session expired. Please try again.');
-    const body = new URLSearchParams({grant_type:'authorization_code',client_id:CONFIG.clientId,code,redirect_uri:CONFIG.redirectUri,code_verifier:saved.verifier});
-    const response = await fetch(CONFIG.cognitoDomain + '/oauth2/token', {method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
-    if (!response.ok) throw new Error('Could not finish sign-in. Please try again.');
-    const tokens = await response.json();
-    if (!tokens.access_token || !tokens.id_token) throw new Error('Sign-in did not return the required tokens.');
-    const claims = decodeJwt(tokens.id_token);
-    if (claims.iss !== 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_RzVWOxX8F' || claims.aud !== CONFIG.clientId || claims.exp * 1000 <= Date.now()) throw new Error('Unexpected sign-in response.');
-    const groups = claims['cognito:groups'] || [];
-    const groupList = Array.isArray(groups) ? groups : String(groups).replace(/^\[|\]$/g,'').split(',').map(s=>s.trim());
-    if (!groupList.includes('StarkvilleTaskStaff') && !groupList.includes('StarkvilleTaskAdmins')) throw new Error('This account has not been granted Task Manager access.');
-    accessToken = tokens.access_token;
-    userClaims = claims;
-    admin = groupList.includes('StarkvilleTaskAdmins');
+    const target = await AUTH.finishCallback();
+    if (target && target !== AUTH.CALLBACK) { location.replace(target); return 'redirecting'; }
+    const session = AUTH.getSession();
+    if (!session) return false;
+    accessToken = session.accessToken;
+    userClaims = session.claims;
+    admin = session.isAdmin;
     return true;
   }
   function showApp() {
@@ -225,16 +194,11 @@
     $('stat-all-box').classList.toggle('hidden', !admin);
     selectView(admin ? 'all' : 'mine');
   }
-  function signOut() {
-    accessToken = null; userClaims = null; admin = false; tasks = []; nextCursor = null;
-    employees = []; employeeDirectoryReady = false; activeView = 'mine';
-    populateCreateAssignees();
-    sessionStorage.removeItem('starkville_pkce');
-    $('app').classList.add('hidden'); $('signed-out').classList.remove('hidden'); $('logout').classList.add('hidden'); $('identity').textContent = '';
-    message('Signed out of this Task Manager page.');
-  }
+  function signOut() { AUTH.signOut(); }
   async function api(path, options = {}) {
-    if (!accessToken) throw new Error('Please sign in again.');
+    const session = AUTH.getSession();
+    if (!session) throw new Error('Your session has expired. Please sign in again.');
+    accessToken = session.accessToken;
     const headers = {'Authorization':'Bearer ' + accessToken};
     if (options.body !== undefined) headers['Content-Type'] = 'application/json';
     const response = await fetch(CONFIG.apiBase + path, {...options, headers, cache:'no-store'});
@@ -450,7 +414,7 @@
   });
   (async () => {
     try {
-      if (await handleCallback()) { showApp(); await loadEmployees(); await loadTasks(); }
+      if ((await handleCallback()) === true) { showApp(); await loadEmployees(); await loadTasks(); }
     } catch (err) { message(err.message,true); }
   })();
   </script>

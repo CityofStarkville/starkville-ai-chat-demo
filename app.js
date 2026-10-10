@@ -9,6 +9,29 @@ const sendButton = document.getElementById("send-button");
 const newChatButton = document.getElementById("new-chat-button");
 const statusElement = document.getElementById("status");
 
+const AUTH = window.StarkvilleAuth;
+const loginGate = document.getElementById('login-gate');
+const workspace = document.getElementById('workspace');
+const workspaceNav = document.getElementById('workspace-nav');
+const workspaceSignout = document.getElementById('workspace-signout');
+const loginError = document.getElementById('workspace-login-error');
+function showAccessState() {
+  const session = AUTH.getSession();
+  const authorized = Boolean(session);
+  loginGate.hidden = authorized;
+  workspace.hidden = !authorized;
+  workspaceNav.hidden = !authorized;
+  workspaceSignout.hidden = !authorized;
+  return session;
+}
+document.getElementById('workspace-login').addEventListener('click', async () => {
+  try { await AUTH.startLogin('./'); }
+  catch (e) { loginError.hidden = false; loginError.textContent = e.message || 'Unable to start sign-in.'; }
+});
+workspaceSignout.addEventListener('click', () => AUTH.signOut());
+window.addEventListener('pageshow', showAccessState);
+showAccessState();
+
 const MAX_HISTORY_MESSAGES = 4;
 let history = [];
 
@@ -260,6 +283,8 @@ function resetConversation() {
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
+  const session = showAccessState();
+  if (!session) return;
   const question = questionInput.value.trim();
 
   if (!question) {
@@ -291,7 +316,8 @@ form.addEventListener("submit", async (event) => {
     const response = await fetch(API_URL, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + session.accessToken
       },
       body: JSON.stringify({
         question: question,

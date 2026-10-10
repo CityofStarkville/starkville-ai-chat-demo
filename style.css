@@ -807,7 +807,7 @@ a {
 }
 
 .official-links a::after {
-  content: "↗";
+  content: "â†—";
 
   color: var(--city-red);
 
@@ -1295,7 +1295,7 @@ textarea:focus-visible {
 }
 
 /* =========================================================
-   COMPACT SHARED CITY NAVIGATION — matches Task Manager
+   COMPACT SHARED CITY NAVIGATION â€” matches Task Manager
    ========================================================= */
 body {
   background: #f3f7f7;
@@ -1382,3 +1382,17 @@ body {
   .assistant-toolbar { flex-wrap: wrap; }
   .site-nav { gap: 2px; }
 }
+
+/* Shared workspace sign-in */
+[hidden] { display:none !important; }
+.workspace-signout { padding:8px 13px; background:#ffffff17; color:#fff; border:1px solid #b0d4d4; border-radius:8px; font-size:13px; font-weight:750; }
+.workspace-signout:hover { background:#ffffff30; }
+.login-gate { min-height:calc(100vh - 90px); display:grid; place-items:center; padding:36px 16px; }
+.login-panel { width:min(460px,100%); background:#fff; border:1px solid #dce7e7; border-radius:16px; padding:36px; text-align:center; box-shadow:0 6px 24px #173e400b; }
+.login-panel h1 { font-size:28px; margin:9px 0 8px; }
+.login-panel p { color:#61777a; margin:0 0 24px; }
+.login-panel .login-error { color:#a83237; margin:15px 0 0; }
+.login-lock { margin:0 auto 16px; display:grid; place-items:center; border-radius:50%; width:52px; height:52px; background:#176366; color:#fff; font-weight:800; font-size:25px; }
+#workspace-login { padding:12px 20px; background:#176366; color:white; border:0; border-radius:8px; font-weight:800; }
+#workspace-login:hover { background:#103f43; }
+@media(max-width:700px) { .workspace-signout { margin-left:auto; } .login-panel { padding:27px 19px; } }
