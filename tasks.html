@@ -87,12 +87,25 @@
     @media(max-width:850px) { .stats { grid-template-columns:repeat(2,minmax(0,1fr)); } }
     @media(max-width:700px) { .fields { grid-template-columns:repeat(2,minmax(0,1fr)); } .span-4 { grid-column:span 2; } .header-inner { min-height:62px; } .task > summary { align-items:flex-start; } }
     @media(max-width:470px) { .fields { grid-template-columns:1fr; } .span-2,.span-4 { grid-column:span 1; } .seal { width:34px; height:34px; font-size:18px; } h1 { font-size:16px; } .eyebrow { font-size:9px; } .header-inner { padding:10px 13px; } main { padding:15px 12px 45px; } .board-heading,.board-body { padding-left:13px; padding-right:13px; } .tabs { padding-left:13px; padding-right:13px; } .task > summary { flex-direction:column; align-items:stretch; } .task-summary-right { justify-content:flex-start; } #identity { display:none; } .stat { padding:12px; } }
+
+    /* Navigation shared with the public Planning AI Assistant */
+    .site-nav { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-left:auto; }
+    .nav-link { display:inline-flex; align-items:center; justify-content:center; padding:9px 13px; border:1px solid transparent; border-radius:8px; color:#e6f5f4; font-size:13px; font-weight:750; text-decoration:none; white-space:nowrap; }
+    .nav-link:hover { color:#fff; background:#ffffff1c; }
+    .nav-link.active,.nav-link[aria-current="page"] { color:#fff; background:#ffffff2b; border-color:#ffffff45; }
+    .nav-link:focus-visible { outline:3px solid #fff; outline-offset:2px; }
+    @media(max-width:850px) { .header-inner { flex-wrap:wrap; } .site-nav { order:3; width:100%; margin-left:0; } }
+    @media(max-width:470px) { .nav-link { padding:7px 11px; font-size:12px; } }
   </style>
 </head>
 <body>
   <header>
     <div class="header-inner">
       <div class="brand"><div class="seal" aria-hidden="true">S</div><div><div class="eyebrow">City of Starkville · Employee Services</div><h1>Task Manager</h1></div></div>
+      <nav class="site-nav" aria-label="City applications">
+        <a class="nav-link" href="./">Planning AI</a>
+        <a class="nav-link active" href="tasks.html" aria-current="page">Task Manager</a>
+      </nav>
       <div class="toolbar"><span id="identity" class="small"></span><button id="logout" class="hidden" type="button">Sign out</button></div>
     </div>
   </header>
