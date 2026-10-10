@@ -39,6 +39,9 @@
     .task-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:13px; }
     .task-head h3 { margin:0; font-size:17px; overflow-wrap:anywhere; }
     .tag { background:#e8f0f8; color:#1d5685; padding:4px 9px; border-radius:999px; font-size:12px; font-weight:700; white-space:nowrap; }
+    .task-tags { display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+    .visibility-shared { background:#e7f4ed; color:#216448; }
+    .visibility-private { background:#f0f1f4; color:#566276; }
     .task-meta { margin:12px 0 0; font-size:12px; color:var(--muted); overflow-wrap:anywhere; }
     .notice { padding:12px 15px; border-radius:9px; margin-bottom:18px; background:#e9f2fc; border:1px solid #bfd6ed; }
     .notice.error { background:#fff0f0; border-color:#edb9b9; color:#8b2222; }
@@ -71,13 +74,14 @@
             <div><label for="new-due">Due date</label><input id="new-due" type="date"></div>
             <div class="span-4"><label for="new-description">Description</label><textarea id="new-description" maxlength="2000"></textarea></div>
             <div id="create-assignee-field" class="span-2 hidden"><label for="new-assignee">Assign to employee</label><select id="new-assignee" disabled><option value="">Loading employees...</option></select></div>
+            <div id="create-visibility-field" class="span-2 hidden"><label for="new-visibility">Task visibility</label><select id="new-visibility"><option value="private">Private — assigned employee only</option><option value="shared">Shared — all authorized staff</option></select></div>
           </div>
           <div class="actions"><button type="submit">Create task</button></div>
         </form>
       </section>
       <section class="panel">
         <div class="toolbar"><h2>Tasks</h2><button class="secondary" id="refresh" type="button">Refresh</button></div>
-        <p class="muted small">Staff can update task details and status. Administrators can also change assignments and delete tasks.</p>
+        <p class="muted small">Staff can view and update tasks assigned to them or shared with all staff. Administrators can view every task, change assignments and visibility, and delete tasks.</p>
         <div id="task-list" class="task-list" aria-live="polite"></div>
         <div class="actions"><button class="secondary hidden" id="load-more" type="button">Load more tasks</button></div>
       </section>
@@ -135,7 +139,7 @@
     if (claims.iss !== 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_RzVWOxX8F' || claims.aud !== CONFIG.clientId || claims.exp * 1000 <= Date.now()) throw new Error('Unexpected sign-in response.');
     const groups = claims['cognito:groups'] || [];
     const groupList = Array.isArray(groups) ? groups : String(groups).replace(/^\[|\]$/g,'').split(',').map(s=>s.trim());
-if (!groupList.includes('StarkvilleTaskStaff') && !groupList.includes('StarkvilleTaskAdmins')) throw new Error('This account has not been granted Task Manager access.');
+    if (!groupList.includes('StarkvilleTaskStaff') && !groupList.includes('StarkvilleTaskAdmins')) throw new Error('This account has not been granted Task Manager access.');
     accessToken = tokens.access_token;
     userClaims = claims;
     admin = groupList.includes('StarkvilleTaskAdmins');
@@ -146,6 +150,7 @@ if (!groupList.includes('StarkvilleTaskStaff') && !groupList.includes('Starkvill
     $('identity').textContent = userClaims.email || 'Signed in';
     $('role').textContent = admin ? 'Administrator' : 'Staff';
     $('create-assignee-field').classList.toggle('hidden', !admin);
+    $('create-visibility-field').classList.toggle('hidden', !admin);
   }
   function signOut() {
     accessToken = null; userClaims = null; admin = false; tasks = []; nextCursor = null;
@@ -235,7 +240,13 @@ if (!groupList.includes('StarkvilleTaskStaff') && !groupList.includes('Starkvill
     if (!tasks.length) { list.append(element('div',{class:'empty'},'No tasks found. Create the first task above.')); return; }
     for (const task of tasks) {
       const card = element('article',{class:'task'}), head = element('div',{class:'task-head'});
-      head.append(element('h3',{},task.title || 'Untitled task'), element('span',{class:'tag'},(task.priority || 'normal').toUpperCase()));
+      const taskVisibility = task.visibility === 'shared' ? 'shared' : 'private';
+      const tags = element('div', {class:'task-tags'});
+      tags.append(
+        element('span',{class:'tag'},(task.priority || 'normal').toUpperCase()),
+        element('span',{class:'tag visibility-' + taskVisibility},taskVisibility === 'shared' ? 'SHARED' : 'PRIVATE')
+      );
+      head.append(element('h3',{},task.title || 'Untitled task'), tags);
       card.append(head);
       const form = element('form'), fields = element('div',{class:'fields'});
       const title = field(fields,'Title',task.title,'text',{span:'span-2',maxlength:200});
@@ -244,6 +255,12 @@ if (!groupList.includes('StarkvilleTaskStaff') && !groupList.includes('Starkvill
       const description = field(fields,'Description',task.description,'textarea',{span:'span-4'});
       const due = field(fields,'Due date',task.due_date,'date');
       let assignee;
+      let visibility;
+      if (admin) {
+        visibility = field(fields,'Task visibility',taskVisibility,'select',{
+          span:'span-2', choices:[['private','Private — assigned employee only'],['shared','Shared — all authorized staff']]
+        });
+      }
       if (admin && employeeDirectoryReady) {
         assignee = field(fields,'Assigned to employee',task.assigned_to,'select',{
           span:'span-2', choices:employeeChoices(task.assigned_to || '')
@@ -252,7 +269,9 @@ if (!groupList.includes('StarkvilleTaskStaff') && !groupList.includes('Starkvill
         fields.append(element('div',{class:'span-2 muted small'},
           'Assigned to: ' + (task.assigned_to || 'Unassigned') + ' (directory unavailable)'));
       } else {
-        fields.append(element('div',{class:'span-2 muted small'},'Assigned to: ' + (task.assigned_to || 'Unassigned')));
+        const assignedLabel = !task.assigned_to ? 'Unassigned' :
+          task.assigned_to === userClaims.sub ? 'You' : 'Another employee';
+        fields.append(element('div',{class:'span-2 muted small'},'Assigned to: ' + assignedLabel));
       }
       form.append(fields);
       const actions = element('div',{class:'actions'}), save = element('button',{type:'submit'},'Save changes'); actions.append(save);
@@ -271,6 +290,7 @@ if (!groupList.includes('StarkvilleTaskStaff') && !groupList.includes('Starkvill
         e.preventDefault(); save.disabled = true; clearMessage();
         const changes = {title:title.value.trim(),status:status.value,priority:priority.value,description:description.value,due_date:due.value};
         if (admin && assignee) changes.assigned_to = assignee.value;
+        if (admin && visibility) changes.visibility = visibility.value;
         try { await api('/tasks/' + encodeURIComponent(task.task_id),{method:'PATCH',body:JSON.stringify(changes)}); message('Task updated successfully.'); await loadTasks(); }
         catch (err) { message(err.message,true); save.disabled = false; }
       });
@@ -299,6 +319,7 @@ if (!groupList.includes('StarkvilleTaskStaff') && !groupList.includes('Starkvill
     const submit = e.currentTarget.querySelector('button[type=submit]'); submit.disabled = true;
     const payload = {title:$('new-title').value.trim(),description:$('new-description').value,priority:$('new-priority').value,due_date:$('new-due').value};
     if (admin && employeeDirectoryReady && $('new-assignee').value) payload.assigned_to = $('new-assignee').value;
+    if (admin) payload.visibility = $('new-visibility').value;
     try { await api('/tasks',{method:'POST',body:JSON.stringify(payload)}); $('create-form').reset(); message('Task created successfully.'); await loadTasks(); }
     catch (err) { message(err.message,true); }
     finally { submit.disabled = false; }
